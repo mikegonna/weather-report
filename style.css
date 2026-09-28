@@ -49,7 +49,7 @@ h1 { font-size: 23px; line-height: 1.35; margin: 0; font-weight: 600; }
 .subtitle { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
 
 .province-tools {
-    display: grid; grid-template-columns: minmax(180px, 1fr) 38px; gap: 8px; align-items: center;
+    display: grid; grid-template-columns: minmax(180px, 1fr) 38px 38px; gap: 8px; align-items: center;
 }
 .province-search {
     width: 100%; height: 40px; padding: 0 12px; border: 1px solid #dce5dc; border-radius: 8px;
@@ -60,11 +60,12 @@ h1 { font-size: 23px; line-height: 1.35; margin: 0; font-weight: 600; }
     position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden;
     clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
 }
-.refresh {
+.tool-button, .refresh {
     width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid #dce5dc;
     border-radius: 8px; background: var(--paper); color: var(--green); font-size: 21px; cursor: pointer;
 }
-.refresh:hover { background: var(--green-light); }
+.tool-button:hover, .refresh:hover { background: var(--green-light); }
+.location-status { grid-column: 1 / -1; min-height: 16px; color: var(--muted); font-size: 11px; }
 
 .dashboard { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(280px, .85fr); gap: 16px; }
 .current-card {
@@ -134,7 +135,7 @@ footer a { color: var(--green); text-decoration-color: #a6b9aa; }
     .top-date { max-width: 130px; text-align: right; font-size: 11px; }
     main { padding-top: 25px; }
     .page-heading { align-items: start; flex-direction: column; margin-bottom: 15px; }
-    .province-tools { width: 100%; grid-template-columns: minmax(0, 1fr) 38px; }
+    .province-tools { width: 100%; grid-template-columns: minmax(0, 1fr) 38px 38px; }
     .province-search { grid-column: 1 / -1; }
     h1 { font-size: 21px; }
     .dashboard, .lower-grid { grid-template-columns: 1fr; gap: 12px; }

@@ -82,9 +82,11 @@ const locationCache = new Map();
 const provinceSearch = document.getElementById("provinceSearch");
 const provinceOptions = document.getElementById("provinceOptions");
 let selectedProvinceIndex = 0;
+let gpsLocation = null;
 const errorMessage = document.getElementById("errorMessage");
 const weatherContent = document.getElementById("weatherContent");
 const forecastContent = document.getElementById("forecastContent");
+const locationStatus = document.getElementById("locationStatus");
 const dateFormatter = new Intl.DateTimeFormat("th-TH", {
     timeZone: "Asia/Bangkok", weekday: "long", day: "numeric", month: "long", year: "numeric"
 });
@@ -161,13 +163,13 @@ function renderWeather(data) {
 
 async function loadWeather() {
     const [provinceName, searchName] = provinces[selectedProvinceIndex];
-    document.getElementById("cityName").textContent = provinceName;
+    document.getElementById("cityName").textContent = gpsLocation?.displayName ?? provinceName;
     errorMessage.classList.remove("visible");
     weatherContent.classList.add("loading");
     forecastContent.classList.add("loading");
 
     try {
-        let location = locationCache.get(searchName);
+        let location = gpsLocation ?? locationCache.get(searchName);
         if (!location) {
             const geocodingParams = new URLSearchParams({
                 name: searchName,
@@ -218,8 +220,60 @@ provinceSearch.addEventListener("change", () => {
     }
 
     provinceSearch.setCustomValidity("");
+    gpsLocation = null;
+    locationStatus.textContent = "";
     selectedProvinceIndex = provinceIndex;
     loadWeather();
+});
+document.getElementById("gpsButton").addEventListener("click", () => {
+    if (!navigator.geolocation) {
+        locationStatus.textContent = "เบราว์เซอร์นี้ไม่รองรับการระบุตำแหน่ง";
+        return;
+    }
+
+    locationStatus.textContent = "กำลังขอตำแหน่งจากอุปกรณ์...";
+    navigator.geolocation.getCurrentPosition(async ({ coords }) => {
+        let reverseLocation = null;
+        try {
+            const reverseParams = new URLSearchParams({
+                latitude: coords.latitude,
+                longitude: coords.longitude,
+                localityLanguage: "th"
+            });
+            const reverseResponse = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?${reverseParams}`);
+            if (reverseResponse.ok) reverseLocation = await reverseResponse.json();
+        } catch {
+            // GPS weather still works when reverse geocoding is unavailable.
+        }
+
+        const subdivision = reverseLocation?.principalSubdivisionThai
+            || reverseLocation?.principalSubdivision
+            || "";
+        const normalizedSubdivision = subdivision.replace(/^จังหวัด\s*/, "").trim();
+        const matchedProvince = provinces.find(([thaiName, englishName]) =>
+            thaiName === normalizedSubdivision || englishName.toLowerCase() === normalizedSubdivision.toLowerCase()
+        );
+        const provinceName = matchedProvince?.[0] || normalizedSubdivision || "ตำแหน่งปัจจุบัน";
+        const locality = reverseLocation?.locality || reverseLocation?.city || provinceName;
+
+        gpsLocation = {
+            latitude: coords.latitude,
+            longitude: coords.longitude,
+            displayName: locality
+        };
+        if (matchedProvince) selectedProvinceIndex = provinces.indexOf(matchedProvince);
+        provinceSearch.value = provinceName;
+        provinceSearch.setCustomValidity("");
+        locationStatus.textContent = `ใช้ตำแหน่ง GPS: ${provinceName}`;
+        loadWeather();
+    }, error => {
+        const messages = {
+            1: "ไม่ได้รับอนุญาตให้เข้าถึงตำแหน่ง",
+            2: "ไม่สามารถระบุตำแหน่งอุปกรณ์ได้",
+            3: "การขอตำแหน่งใช้เวลานานเกินไป"
+        };
+        locationStatus.textContent = `${messages[error.code] || "ระบุตำแหน่งไม่สำเร็จ"} กรุณาลองอีกครั้ง`;
+    }, { enableHighAccuracy: false, timeout: 10000, maximumAge: 60000 });
 });
 document.getElementById("refreshButton").addEventListener("click", loadWeather);
 loadWeather();

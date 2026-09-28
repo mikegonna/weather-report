@@ -33,7 +33,9 @@
                     <label class="sr-only" for="provinceSearch">ค้นหาชื่อจังหวัด</label>
                     <input class="province-search" id="provinceSearch" type="search" list="provinceOptions" placeholder="ค้นหาชื่อจังหวัด" autocomplete="off">
                     <datalist id="provinceOptions"></datalist>
+                    <button class="tool-button locate" id="gpsButton" type="button" aria-label="ใช้ตำแหน่ง GPS ปัจจุบัน" title="ใช้ตำแหน่งปัจจุบัน">⌖</button>
                     <button class="refresh" id="refreshButton" type="button" aria-label="โหลดข้อมูลอากาศใหม่" title="โหลดข้อมูลใหม่">↻</button>
+                    <span class="location-status" id="locationStatus" role="status" aria-live="polite"></span>
                 </div>
             </div>
 
